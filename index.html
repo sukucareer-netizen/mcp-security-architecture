@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Security Architecture - Affiliate Data Access Control</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        .architecture-section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .diagram-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .component {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .component-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .component-desc {
+            font-size: 13px;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+        .security-layer {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-color: #e74c3c;
+            color: white;
+        }
+        .security-layer .component-title {
+            color: white;
+        }
+        .security-layer .component-desc {
+            color: #ffe6e6;
+        }
+        .arrow {
+            font-size: 24px;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .arrow-down {
+            display: flex;
+            justify-content: center;
+            font-size: 30px;
+            color: #3498db;
+        }
+        .implementation-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .option-card {
+            background: white;
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .option-card h3 {
+            color: #27ae60;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .option-card .pros {
+            background: #d4edda;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .option-card .cons {
+            background: #f8d7da;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .option-card .label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .code-snippet {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 2px solid #34495e;
+        }
+        .highlight {
+            background: #f39c12;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .note-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+        .database {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-color: #2980b9;
+            color: white;
+        }
+        .database .component-title {
+            color: white;
+        }
+        .database .component-desc {
+            color: #e6f7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 MCP Security Architecture</h1>
+        <div class="subtitle">Affiliate-Based Access Control for Multi-Tenant Data</div>
+
+        <!-- Architecture Overview -->
+        <div class="architecture-section">
+            <div class="section-title">1. High-Level Architecture Flow</div>
+            <div class="diagram-container">
+                <div class="flow-row">
+                    <div class="component">
+                        <div class="component-title">👤 Business User</div>
+                        <div class="component-desc">Affiliate A User<br>Query: "Show opportunities"</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="component">
+                        <div class="component-title">💬 Dataiku Chatbot</div>
+                        <div class="component-desc">Receives user query<br>Extracts user identity</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="component security-layer">
+                        <div class="component-title">🛡️ Security Layer</div>
+                        <div class="component-desc">User → Affiliate Mapping<br>Access Control Rules</div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+                
+                <div class="flow-row">
+                    <div class="component security-layer">
+                        <div class="component-title">🔍 Query Rewriter</div>
+                        <div class="component-desc">Injects WHERE clause<br>affiliate_id = 'A'</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="component">
+                        <div class="component-title">🔌 MCP Server</div>
+                        <div class="component-desc">On Dataiku<br>Executes secured query</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="component database">
+                        <div class="component-title">🗄️ MSSQL Database</div>
+                        <div class="component-desc">60 Affiliates<br>3 Tables (JOIN)</div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+                
+                <div class="flow-row">
+                    <div class="component">
+                        <div class="component-title">✅ Filtered Results</div>
+                        <div class="component-desc">Only Affiliate A data<br>Returned to user</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Implementation Options -->
+        <div class="architecture-section">
+            <div class="section-title">2. Security Implementation Strategies</div>
+            
+            <div class="implementation-options">
+                <!-- Option 1 -->
+                <div class="option-card">
+                    <h3>
+                        <span style="background: #27ae60; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                        Middleware Query Interceptor
+                    </h3>
+                    <p>Intercept all queries and automatically inject affiliate filter</p>
+                    
+                    <div class="code-snippet">
+# In MCP Server (Python)
+def secure_query(user_id, base_query):
+    affiliate_id = get_user_affiliate(user_id)
+    
+    # Parse and inject WHERE clause
+    if "WHERE" in base_query.upper():
+        secured = base_query.replace(
+            "WHERE", 
+            f"WHERE affiliate_id = '{affiliate_id}' AND"
+        )
+    else:
+        secured = base_query + f" WHERE affiliate_id = '{affiliate_id}'"
+    
+    return secured
+                    </div>
+                    
+                    <div class="pros">
+                        <div class="label">✅ Pros:</div>
+                        • Transparent to users<br>
+                        • Centralized security logic<br>
+                        • Works with natural language queries
+                    </div>
+                    
+                    <div class="cons">
+                        <div class="label">❌ Cons:</div>
+                        • Complex SQL parsing required<br>
+                        • May break with subqueries/CTEs
+                    </div>
+                </div>
+
+                <!-- Option 2 -->
+                <div class="option-card">
+                    <h3>
+                        <span style="background: #27ae60; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                        Row-Level Security (RLS) in SQL Server
+                    </h3>
+                    <p>Use SQL Server's built-in RLS to enforce security at database level</p>
+                    
+                    <div class="code-snippet">
+-- Create security policy
+CREATE FUNCTION dbo.fn_securitypredicate(@affiliate_id AS VARCHAR(50))
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN SELECT 1 AS fn_securitypredicate_result
+WHERE @affiliate_id = CAST(SESSION_CONTEXT(N'affiliate_id') AS VARCHAR(50));
+
+-- Apply to tables
+CREATE SECURITY POLICY AffiliateSecurityPolicy
+ADD FILTER PREDICATE dbo.fn_securitypredicate(affiliate_id)
+ON dbo.Opportunities,
+ADD FILTER PREDICATE dbo.fn_securitypredicate(affiliate_id)
+ON dbo.Accounts,
+ADD FILTER PREDICATE dbo.fn_securitypredicate(affiliate_id)
+ON dbo.Contacts;
+
+-- Set context before query
+EXEC sp_set_session_context @key = N'affiliate_id', @value = 'A';
+                    </div>
+                    
+                    <div class="pros">
+                        <div class="label">✅ Pros:</div>
+                        • Database-enforced (most secure)<br>
+                        • No query modification needed<br>
+                        • Handles all query types automatically
+                    </div>
+                    
+                    <div class="cons">
+                        <div class="label">❌ Cons:</div>
+                        • Requires SQL Server Enterprise (or 2016+)<br>
+                        • Session context must be set per connection
+                    </div>
+                </div>
+
+                <!-- Option 3 -->
+                <div class="option-card">
+                    <h3>
+                        <span style="background: #27ae60; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                        Parameterized Views/Stored Procedures
+                    </h3>
+                    <p>Create affiliate-specific database objects that users access through MCP</p>
+                    
+                    <div class="code-snippet">
+-- Create parameterized stored procedure
+CREATE PROCEDURE usp_GetOpportunityStatus
+    @affiliate_id VARCHAR(50),
+    @user_filter NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    SELECT o.opportunity_id, o.status, a.account_name, c.contact_name
+    FROM Opportunities o
+    JOIN Accounts a ON o.account_id = a.account_id
+    JOIN Contacts c ON o.contact_id = c.contact_id
+    WHERE o.affiliate_id = @affiliate_id
+    AND (@user_filter IS NULL OR o.status LIKE '%' + @user_filter + '%')
+END
+
+-- MCP calls with affiliate parameter
+EXEC usp_GetOpportunityStatus @affiliate_id = 'A', @user_filter = 'Open'
+                    </div>
+                    
+                    <div class="pros">
+                        <div class="label">✅ Pros:</div>
+                        • Simple and reliable<br>
+                        • Works on any SQL Server version<br>
+                        • Clear audit trail
+                    </div>
+                    
+                    <div class="cons">
+                        <div class="label">❌ Cons:</div>
+                        • Less flexible for ad-hoc queries<br>
+                        • Requires procedure for each query type
+                    </div>
+                </div>
+
+                <!-- Option 4 -->
+                <div class="option-card">
+                    <h3>
+                        <span style="background: #27ae60; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">4</span>
+                        Context-Aware MCP Tool
+                    </h3>
+                    <p>Build security directly into MCP tool definition with user context</p>
+                    
+                    <div class="code-snippet">
+# MCP Tool Definition
+@mcp.tool()
+def query_opportunities(user_context: dict, filters: str = None):
+    """Query opportunities with automatic security filtering"""
+    
+    # Extract affiliate from user context
+    affiliate_id = user_context.get('affiliate_id')
+    
+    # Build secure query
+    query = f"""
+    SELECT o.opportunity_id, o.status, a.account_name
+    FROM Opportunities o
+    JOIN Accounts a ON o.account_id = a.account_id
+    WHERE o.affiliate_id = '{affiliate_id}'
+    """
+    
+    if filters:
+        query += f" AND {filters}"
+    
+    return execute_query(query)
+                    </div>
+                    
+                    <div class="pros">
+                        <div class="label">✅ Pros:</div>
+                        • Built into MCP architecture<br>
+                        • Type-safe and validated<br>
+                        • Easy to audit and test
+                    </div>
+                    
+                    <div class="cons">
+                        <div class="label">❌ Cons:</div>
+                        • Requires custom tool per use case<br>
+                        • Less flexible than direct SQL
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Approach -->
+        <div class="architecture-section">
+            <div class="section-title">3. Recommended Hybrid Approach</div>
+            
+            <div class="note">
+                <div class="note-title">💡 Best Practice: Layered Security</div>
+                Combine multiple approaches for defense in depth:
+                <ol style="margin: 10px 0 0 20px; color: #495057;">
+                    <li><strong>Authentication Layer:</strong> SSO/OAuth integration in Dataiku chatbot</li>
+                    <li><strong>Authorization Layer:</strong> User → Affiliate mapping service (database table or API)</li>
+                    <li><strong>Query Layer:</strong> Either RLS (Option 2) OR Query Interceptor (Option 1)</li>
+                    <li><strong>Audit Layer:</strong> Log all queries with user_id and affiliate_id</li>
+                </ol>
+            </div>
+
+            <div class="diagram-container" style="margin-top: 20px;">
+                <div class="flow-row">
+                    <div class="component security-layer" style="min-width: 250px;">
+                        <div class="component-title">🔐 User Authentication</div>
+                        <div class="component-desc">SSO/LDAP in Dataiku<br>user_id = "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="274d484f49094348426744484a5746495e0944484a">[email&#160;protected]</a>"</div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+                
+                <div class="flow-row">
+                    <div class="component security-layer" style="min-width: 250px;">
+                        <div class="component-title">👥 User-Affiliate Mapping</div>
+                        <div class="component-desc">
+                            SELECT affiliate_id FROM user_affiliates<br>
+                            WHERE user_id = '<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fa90959294d49e959fba9995978a9b9483d4999597">[email&#160;protected]</a>'<br>
+                            <span class="highlight">Returns: 'AFFILIATE_A'</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+                
+                <div class="flow-row">
+                    <div class="component security-layer" style="min-width: 250px;">
+                        <div class="component-title">🛡️ RLS in SQL Server</div>
+                        <div class="component-desc">
+                            SET SESSION_CONTEXT('affiliate_id', 'AFFILIATE_A')<br>
+                            All queries automatically filtered
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down">↓</div>
+                
+                <div class="flow-row">
+                    <div class="component" style="min-width: 250px;">
+                        <div class="component-title">📊 Safe Query Execution</div>
+                        <div class="component-desc">
+                            User can query any table<br>
+                            Only sees their affiliate's data
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Checklist -->
+        <div class="architecture-section">
+            <div class="section-title">4. Implementation Checklist</div>
+            
+            <div class="code-snippet">
+☐ Step 1: Create user_affiliates mapping table
+   CREATE TABLE user_affiliates (
+       user_id VARCHAR(255) PRIMARY KEY,
+       affiliate_id VARCHAR(50) NOT NULL,
+       granted_date DATETIME DEFAULT GETDATE()
+   )
+
+☐ Step 2: Implement RLS or Query Interceptor
+   - Choose based on SQL Server version and flexibility needs
+   - Test with various query patterns
+
+☐ Step 3: Integrate with Dataiku chatbot
+   - Extract user identity from Dataiku session
+   - Call mapping service before MCP query
+
+☐ Step 4: Add audit logging
+   CREATE TABLE query_audit_log (
+       log_id INT IDENTITY PRIMARY KEY,
+       user_id VARCHAR(255),
+       affiliate_id VARCHAR(50),
+       query_text NVARCHAR(MAX),
+       executed_at DATETIME DEFAULT GETDATE()
+   )
+
+☐ Step 5: Test with different users
+   - Verify affiliate A user ca
